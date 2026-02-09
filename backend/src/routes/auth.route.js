@@ -60,7 +60,11 @@ router.post("/login", async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: user.id, role: user.role },
+      {
+        id: user.id,
+        role: user.role,
+        is_super_admin: user.is_super_admin   // <-- penting
+      },
       SECRET,
       { expiresIn: "1d" }
     );
@@ -68,11 +72,19 @@ router.post("/login", async (req, res) => {
     res.json({
       message: "Login berhasil",
       token,
-      role: user.role
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        is_super_admin: user.is_super_admin   // <-- penting
+      }
     });
+
   } catch (err) {
     res.status(500).json({ message: "Server error" });
   }
 });
+
 
 export default router;

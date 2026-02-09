@@ -4,10 +4,10 @@ import { verifyToken } from "../middleware/auth.js";
 
 const router = express.Router();
 
-/* DASHBOARD STOCK (ADMIN ONLY) */
+
 router.get("/stock", verifyToken, async (req, res) => {
   try {
-    // cek role
+    
     if (req.user.role !== "admin") {
       return res.status(403).json({ message: "Akses ditolak" });
     }
@@ -36,6 +36,36 @@ router.get("/stock", verifyToken, async (req, res) => {
     });
   } catch (err) {
     console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.get("/stats", verifyToken, async (req, res) => {
+  try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Akses ditolak" });
+    }
+
+    const [[orders]] = await db.query(
+      "SELECT COUNT(*) total_orders, SUM(total) revenue FROM orders WHERE status='approved'"
+    );
+
+    const [[users]] = await db.query(
+      "SELECT COUNT(*) total_users FROM users"
+    );
+
+    const [[products]] = await db.query(
+      "SELECT COUNT(*) total_products FROM products"
+    );
+
+    res.json({
+      total_orders: orders.total_orders || 0,
+      revenue: orders.revenue || 0,
+      total_users: users.total_users || 0,
+      total_products: products.total_products || 0
+    });
+
+  } catch (err) {
     res.status(500).json({ message: "Server error" });
   }
 });
